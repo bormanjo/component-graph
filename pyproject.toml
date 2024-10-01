@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "component-graph"
+version = "0.2.0"
+authors = [{name = "bormanjo"}]
+description = """
+A config-driven, graph-backed component framework for software design and dependency
+injection.
+"""
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pandas>2",
+    "pandas-market-calendars",
+    "pydantic~=2.9",
+    "networkx",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-mock",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report term-missing:skip-covered"
+testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

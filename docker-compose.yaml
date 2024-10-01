@@ -1,0 +1,7 @@
+services:
+  python:
+    build: .
+    volumes:
+      - .:/code
+    tty: true
+    working_dir: /code
