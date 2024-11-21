@@ -3,18 +3,32 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "component-graph"
-version = "0.2.0"
-authors = [{name = "bormanjo"}]
+name = "compgraph"
+version = "0.3.0"
+authors = [
+    {name = "bormanjo", email = "12824247+bormanjo@users.noreply.github.com"},
+]
 description = """
 A config-driven, graph-backed component framework for software design and dependency
 injection.
 """
+license = {file = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
-    "Programming Language :: Python :: 3",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License",
+  "Typing :: Typed",
+  "Framework :: AsyncIO",
+  "Framework :: Pydantic :: 2",
+  "Framework :: Pytest",
 ]
+
 dependencies = [
     "pandas>2",
     "pandas-market-calendars",
@@ -33,7 +47,18 @@ test = [
     "pytest-cov",
 ]
 
+# https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#creating-executable-scripts
+[project.scripts]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["compgraph"]
+
 [tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
 addopts = "--cov --cov-report term-missing:skip-covered"
 testpaths = ["tests"]
 

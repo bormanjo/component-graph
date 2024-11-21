@@ -13,7 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 
-## [0.2.0]
+## [0.3.0]
+
+- Prepare for public release
+- Renames package module to `compgraph`
+
+### Added
+
+- `LICENSE` file
+
+## [0.2.0] - 2024-09-30
 
 - Initial commit to ready public release
   - Removes non-core modules

@@ -4,12 +4,12 @@ from typing import Any
 
 import networkx as nx
 
-from cg import core
-from cg.calendar import AbstractCalendarFactory
-from cg.core import AbstractNode, DependencyResolver, NodeSetupState, requires
-from cg.date import AbstractDateFactory
-from cg.event import EventSenderFactory
-from cg.log import AbstractLogFactory
+from compgraph import core
+from compgraph.calendar import AbstractCalendarFactory
+from compgraph.core import AbstractNode, DependencyResolver, NodeSetupState, requires
+from compgraph.date import AbstractDateFactory
+from compgraph.event import EventSenderFactory
+from compgraph.log import AbstractLogFactory
 
 class Graph:
     calendar: AbstractCalendarFactory

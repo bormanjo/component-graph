@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import field_validator
 
-from cg.graph import BaseFactory
+from compgraph.graph import BaseFactory
 
 
 class AbstractDateFactory(BaseFactory, node_namespace="date"):

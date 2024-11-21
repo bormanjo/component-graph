@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from cg.core import (
+from compgraph.core import (
     DependenciesNotReadyError,
     Lookup,
     LookupError,
@@ -10,7 +10,7 @@ from cg.core import (
     MissingDependenciesError,
     WrongNamespaceError,
 )
-from cg.graph import (
+from compgraph.graph import (
     BaseFactory,
     BaseNoLogFactory,
     Graph,
@@ -52,7 +52,7 @@ async def test_graph_missing_dependencies(log_config: dict[str, Any]) -> None:
 @pytest.mark.asyncio
 async def test_factory_under_wrong_namespace() -> None:
     config = {
-        "time": {"class": "cg.date.DateFactory", "date": "2023-01-01"},
+        "time": {"class": "compgraph.date.DateFactory", "date": "2023-01-01"},
     }
     with pytest.raises(WrongNamespaceError):
         await Graph.from_config(config)
@@ -87,7 +87,7 @@ async def test_run_graph(log_config: dict[str, Any]) -> None:
 async def test_graph_to_networkx(log_config: dict[str, Any]) -> None:
     config = log_config | {
         "date": {
-            "class": "cg.date.DateFactory",
+            "class": "compgraph.date.DateFactory",
             "date": "2023-01-01",
         },
     }

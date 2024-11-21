@@ -4,17 +4,17 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
 
-from cg.date import zoneinfo_from
-from cg.graph import Graph
+import compgraph as cg
+from compgraph.date import zoneinfo_from
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     argnames=["factory", "params", "expected"],
     argvalues=[
-        ("cg.date.DateFactory", {"date": "2023-01-01"}, datetime.date(2023, 1, 1)),
+        ("compgraph.date.DateFactory", {"date": "2023-01-01"}, datetime.date(2023, 1, 1)),
         (
-            "cg.date.SystemDateFactory",
+            "compgraph.date.SystemDateFactory",
             {"timezone": "UTC"},
             datetime.datetime.utcnow().date(),
         ),
@@ -33,7 +33,7 @@ async def test_date_factory(
         },
     }
 
-    graph = await Graph.from_config(config | log_config)
+    graph = await cg.Graph.from_config(config | log_config)
 
     assert graph.date.state.is_ready()
     assert graph.date() == expected

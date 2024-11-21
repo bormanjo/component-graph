@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Protocol, TypeVar, runtime_chec
 import networkx as nx
 from pydantic import BaseModel
 
-from cg.utils import import_object
+from compgraph.utils import import_object
 
 
 class GraphException(Exception):
@@ -69,7 +69,8 @@ class Lookup(dict):
 
     def iter_namespaces(self) -> Generator[tuple[str, Any], None, None]:
         def iter_paths(
-            lookup: Lookup, context: list[str] | None = None
+            lookup: Lookup,
+            context: list[str] | None = None,
         ) -> list[tuple[str, Any]]:
             context = context or []
             items = []
@@ -118,10 +119,14 @@ class Lookup(dict):
 
 
 class NodeSetupState(Enum):
+    """
+    Enumerates the set of possible states a node transitions through during Graph
+    setup.
+    """
     INITIALIZED = auto()  # Node is initialized from config
     DEPS_RESOLVED = auto()  # Node's dependencies have been inferred
     DEPS_AVAILABLE = auto()  # Node's dependencies are available for use
-    STARTING = auto()  # Node's internal startup is running
+    STARTING = auto()  # Node's internal setup is running
     READY = auto()  # Node's dependencies are accessible
 
     def is_ready(self) -> bool:
@@ -130,6 +135,7 @@ class NodeSetupState(Enum):
 
 @runtime_checkable
 class DependencyResolver(Protocol):
+    """A protocol for resolving a set of required namespace dependencies"""
     def __call__(self, **kwargs: Any) -> set[str]: ...  # pragma: no cover
 
 

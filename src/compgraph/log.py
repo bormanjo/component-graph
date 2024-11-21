@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import PrivateAttr
 
-from cg.graph import BaseNoLogFactory
+from compgraph.graph import BaseNoLogFactory
 
 
 class AbstractLogFactory(BaseNoLogFactory, node_namespace="log"):
@@ -14,7 +14,7 @@ class AbstractLogFactory(BaseNoLogFactory, node_namespace="log"):
 
 class BasicConfigLogFactory(AbstractLogFactory):
     level: int | str = logging.INFO
-    name: str = "cg"
+    name: str = "compgraph"
     _base_logger: logging.Logger = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:

@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 import pandas_market_calendars as mcal
 
-from cg.graph import BaseFactory
+from compgraph.graph import BaseFactory
 
 
 class AbstractCalendarFactory(BaseFactory, node_namespace="calendar"):

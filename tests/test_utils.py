@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from cg.utils import import_object
+from compgraph.utils import import_object
 
 
 def test_import_object() -> None:

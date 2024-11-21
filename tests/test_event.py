@@ -4,8 +4,8 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from cg.event import AbstractEvent, CallbackPriority
-from cg.graph import Graph
+import compgraph as cg
+from compgraph.event import AbstractEvent, CallbackPriority
 
 
 class DummyEvent(AbstractEvent):
@@ -19,10 +19,10 @@ async def test_event_sender_callbacks_with_priority(log_config: dict[str, Any]) 
     Asserts that callbacks are fired in prioritized order.
     """
     config = {
-        "event_sender": {"class": "cg.event.EventSenderFactory"},
+        "event_sender": {"class": "compgraph.event.EventSenderFactory"},
     }
 
-    graph = await Graph.from_config(config | log_config)
+    graph = await cg.Graph.from_config(config | log_config)
 
     sender = graph.event_sender(event_cls=DummyEvent)
     assert sender.kind == DummyEvent

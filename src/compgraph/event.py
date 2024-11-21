@@ -6,7 +6,7 @@ from typing import Generic, Protocol, TypeVar
 
 from pydantic import BaseModel, PrivateAttr
 
-from cg.graph import BaseComponent, BaseFactory
+from compgraph.graph import BaseComponent, BaseFactory
 
 
 class AbstractEvent(BaseModel):

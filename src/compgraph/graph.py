@@ -1,4 +1,4 @@
-from cg.core import (
+from compgraph.core import (
     BaseComponent,
     BaseFactory,
     BaseNoLogFactory,
