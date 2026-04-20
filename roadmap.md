@@ -13,3 +13,4 @@
   - `event.sender`
   - `event.archiver`
   - `event.replayer`
+- Make pandas + market calendar dependencies optional
