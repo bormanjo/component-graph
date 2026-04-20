@@ -1,0 +1,92 @@
+import re
+from collections.abc import Generator
+from typing import Any
+
+
+VALID_NAMESPACE_PATTERN = re.compile(r"^([a-z_]\.?)+$")
+
+
+def is_valid_namespace(s: str) -> bool:
+    return VALID_NAMESPACE_PATTERN.match(s) is not None
+
+
+class BaseLookupException(Exception):
+    pass
+
+
+class SetNamespaceError(BaseLookupException):
+    """An error occured while trying to set a namespace"""
+
+
+class Lookup(dict):
+    """
+    An extension of the builtin `dict` with a few extra properties:
+
+    - Lookup keys must be valid namespaces containing only lowercase alphabetic
+      characters, `_` and `.`
+    - 
+    """
+
+    def __getattr__(self, name: str, set_subgraphs: bool = False) -> Any:
+        if (result := self.get(name)) is not None:
+            return result
+
+        if set_subgraphs:
+            self[name] = Lookup()
+            return self[name]
+
+        raise AttributeError(name)
+
+    def iter_namespaces(self) -> Generator[tuple[str, Any], None, None]:
+        """Iterate over all registered namespaces"""
+
+        def iter_paths(
+            lookup: Lookup,
+            *,
+            context: list[str] | None = None,
+        ) -> Generator[tuple[str, Any]]:
+            context = context or []
+            items = []
+            for key, value in lookup.items():
+                path = context + [key]
+                if isinstance(value, Lookup):
+                    for item in iter_paths(value, context=path):
+                        yield item
+                else:
+                    yield (".".join(path), value)
+
+            return items
+
+        return iter(iter_paths(self))
+
+    def get_namespace(self, namespace: str) -> Any | None:
+        """Lookup a namespace and return its value (if any)"""
+        path_items = namespace.split(".")
+
+        try:
+            current = self
+            for item in path_items:
+                current = current.__getattr__(item, set_subgraphs=False)
+        except AttributeError:
+            current = None
+
+        return current
+
+    def set_namespace(self, namespace: str, value: Any) -> None:
+        """Set a value for a namespace"""
+        *path_items, name  = namespace.split(".")
+
+        current = self
+        for i, item in enumerate(path_items, start=1):
+            current = current.__getattr__(item, set_subgraphs=True)
+
+            if not isinstance(current, Lookup):
+                current_ns = ".".join(path_items[:i])
+                msg = f"Cannot overwrite existing namespace: `{current_ns}`"
+                raise SetNamespaceError(msg)
+
+        if name in current:
+            msg = f"Cannot overwrite existing namespace: `{namespace}`"
+            raise SetNamespaceError(msg)
+
+        current[name] = value

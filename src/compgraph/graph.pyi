@@ -4,9 +4,9 @@ from typing import Any
 
 import networkx as nx
 
-from compgraph import core
+from compgraph import _core
 from compgraph.calendar import AbstractCalendarFactory
-from compgraph.core import AbstractNode, DependencyResolver, NodeSetupState, requires
+from compgraph._core import AbstractNode, DependencyResolver, NodeSetupState, requires
 from compgraph.date import AbstractDateFactory
 from compgraph.event import EventSenderFactory
 from compgraph.log import AbstractLogFactory
@@ -26,17 +26,17 @@ class Graph:
     def get_namespace(self, namespace: str) -> Any | None: ...
     def set_namespace(self, namespace: str, value: Any) -> None: ...
 
-class BaseNoLogFactory(core.BaseNoLogFactory):
+class BaseNoLogFactory(_core.BaseNoLogFactory):
     @property
     def dep(self) -> Graph: ...
 
-class BaseFactory(core.BaseFactory):
+class BaseFactory(_core.BaseFactory):
     @property
     def dep(self) -> Graph: ...
     @property
     def log(self) -> logging.Logger: ...
 
-class BaseComponent(core.BaseComponent):
+class BaseComponent(_core.BaseComponent):
     @property
     def dep(self) -> Graph: ...
     @property

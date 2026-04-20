@@ -2,11 +2,8 @@ from typing import Any
 
 import pytest
 
-from compgraph.core import (
+from compgraph._core import (
     DependenciesNotReadyError,
-    Lookup,
-    LookupError,
-    LookupExistsError,
     MissingDependenciesError,
     WrongNamespaceError,
 )
@@ -16,29 +13,6 @@ from compgraph.graph import (
     Graph,
     requires,
 )
-
-
-def test_lookup() -> None:
-    lookup = Lookup()
-    lookup.set_namespace("a.nested", "value")
-    lookup.set_namespace("some.other.nested", [1, 2, 3])
-
-    assert lookup.a.nested == "value"
-    assert lookup.some.other.nested == [1, 2, 3]
-
-    with pytest.raises(LookupError):
-        lookup.set_namespace("a.nested.value", "cant be set here")
-
-    with pytest.raises(LookupExistsError):
-        lookup.set_namespace("a.nested", "value was already set")
-
-    with pytest.raises(AttributeError):
-        lookup.b
-
-    assert lookup.get_namespace("b") is None
-
-    expected = [("a.nested", "value"), ("some.other.nested", [1, 2, 3])]
-    assert list(lookup.iter_namespaces()) == expected
 
 
 @pytest.mark.asyncio
