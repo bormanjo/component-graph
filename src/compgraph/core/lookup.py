@@ -24,7 +24,6 @@ class Lookup(dict):
 
     - Lookup keys must be valid namespaces containing only lowercase alphabetic
       characters, `_` and `.`
-    - 
     """
 
     def __getattr__(self, name: str, set_subgraphs: bool = False) -> Any:
@@ -74,7 +73,7 @@ class Lookup(dict):
 
     def set_namespace(self, namespace: str, value: Any) -> None:
         """Set a value for a namespace"""
-        *path_items, name  = namespace.split(".")
+        *path_items, name = namespace.split(".")
 
         current = self
         for i, item in enumerate(path_items, start=1):

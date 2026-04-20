@@ -123,6 +123,7 @@ class NodeSetupState(Enum):
     Enumerates the set of possible states a node transitions through during Graph
     setup.
     """
+
     INITIALIZED = auto()  # Node is initialized from config
     DEPS_RESOLVED = auto()  # Node's dependencies have been inferred
     DEPS_AVAILABLE = auto()  # Node's dependencies are available for use
@@ -136,6 +137,7 @@ class NodeSetupState(Enum):
 @runtime_checkable
 class DependencyResolver(Protocol):
     """A protocol for resolving a set of required namespace dependencies"""
+
     def __call__(self, **kwargs: Any) -> set[str]: ...  # pragma: no cover
 
 

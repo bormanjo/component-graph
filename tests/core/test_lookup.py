@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from compgraph.core.lookup import SetNamespaceError, Lookup, is_valid_namespace
@@ -29,7 +27,7 @@ def test_valid_namespace_strings(namespace: str) -> None:
         "abc123",
         "abc.123",
         "abc.def123",
-    ]
+    ],
 )
 def test_invalid_namespace_strings(namespace: str) -> None:
     assert not is_valid_namespace(namespace)

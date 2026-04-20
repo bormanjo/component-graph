@@ -12,7 +12,11 @@ from compgraph.date import zoneinfo_from
 @pytest.mark.parametrize(
     argnames=["factory", "params", "expected"],
     argvalues=[
-        ("compgraph.date.DateFactory", {"date": "2023-01-01"}, datetime.date(2023, 1, 1)),
+        (
+            "compgraph.date.DateFactory",
+            {"date": "2023-01-01"},
+            datetime.date(2023, 1, 1),
+        ),
         (
             "compgraph.date.SystemDateFactory",
             {"timezone": "UTC"},
