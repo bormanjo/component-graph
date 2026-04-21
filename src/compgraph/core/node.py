@@ -1,9 +1,6 @@
-import asyncio
-import logging
 from abc import ABC, abstractmethod
-from collections.abc import Generator
 from enum import Enum, auto
-from typing import Any, ClassVar, Protocol, TypeVar
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -13,11 +10,11 @@ from compgraph.core.lookup import Lookup
 
 
 class NodeState(Enum):
-    INITIALIZED = auto()
-    DEPENDENCIES_RESOLVED = auto()
-    DEPENDENCIES_INJECTED = auto()
-    SETUP = auto()
-    READY = auto()
+    INITIALIZED = auto()  # object initialized, but dependencies not yet known
+    DEPENDENCIES_RESOLVED = auto()  # dependencies resolved, but not yet available
+    DEPENDENCIES_INJECTED = auto()  # dependencies available for use
+    SETUP = auto()  # node setup in progress
+    READY = auto()  # node ready for use
 
     def is_ready(self) -> bool:
         return self == NodeState.READY
@@ -27,8 +24,8 @@ class AbstractNode(
     BaseModel,
     ABC,
     AbstractDependencyMixin,
-    arbitrary_types_allowed=True,
 ):
+    # Private Interface ----------------------------------------------------------------
     __node_dep__: Lookup
     __node_state__: NodeState = NodeState.INITIALIZED
     __node_resolved_dependencies__: set[ResolvedDependency] = set()
@@ -52,6 +49,8 @@ class AbstractNode(
     async def __node_run(self) -> None:
         await self._run()
 
+    # Public Interface -----------------------------------------------------------------
+
     @abstractmethod
     async def _setup(self) -> None: ...
 
@@ -60,12 +59,21 @@ class AbstractNode(
 
     @property
     def dep(self) -> Lookup:
-        try:
-            return self.__node_dep__
-        except AttributeError as err:
-            # TODO: replace with DependenciesNotReadyError
-            raise ValueError("Dependencies not yet ready") from err
+        return self.__node_dep__
 
     @property
     def resolved_dependencies(self) -> set[ResolvedDependency]:
         return self.__node_resolved_dependencies__
+
+
+def create_node(
+    klass: type[AbstractNode],
+    node_dep: Lookup,
+    **params: Any,
+) -> AbstractNode:
+    node = klass.model_validate(params)
+    node.__node_resolve_and_set_dependencies()
+
+    subset = node_dep.get_subset(node.resolved_dependencies)
+    node.__node_inject_dependencies(subset)
+    return node

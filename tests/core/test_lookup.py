@@ -61,11 +61,12 @@ def test_set_namespace_cannot_overwrite_existing_node() -> None:
         lookup.set_namespace("abc.def", 2)
 
 
-def test_subgraph_operations() -> None:
+def test_nested_operations() -> None:
     lookup = Lookup()
     lookup.set_namespace("abc.ijk", 1)
     lookup.set_namespace("abc.xyz", 2)
 
+    assert isinstance(lookup.abc, Lookup)
     assert lookup.abc.ijk == lookup["abc"]["ijk"] == lookup.get_namespace("abc.ijk")
     assert lookup.abc.xyz == lookup["abc"]["xyz"] == lookup.get_namespace("abc.xyz")
 
@@ -73,3 +74,15 @@ def test_subgraph_operations() -> None:
         lookup.set_namespace("abc", 3)
 
     assert list(lookup.iter_namespaces()) == [("abc.ijk", 1), ("abc.xyz", 2)]
+
+
+def test_lookup_subset() -> None:
+    lookup = Lookup({"a.b": 1, "a.c": 2, "d": 3})
+    subset = lookup.get_subset({"a.b", "d"})
+
+    subset_namespaces = {ns for ns, _ in subset.iter_namespaces()}
+    lookup_namespaces = {ns for ns, _ in lookup.iter_namespaces()}
+    assert set(subset_namespaces).issubset(lookup_namespaces)
+
+    with pytest.raises(ValueError):
+        lookup.get_subset({"xy", "z"})

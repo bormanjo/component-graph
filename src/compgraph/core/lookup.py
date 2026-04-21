@@ -26,11 +26,18 @@ class Lookup(dict):
       characters, `_` and `.`
     """
 
-    def __getattr__(self, name: str, set_subgraphs: bool = False) -> Any:
+    def __init__(self, dct: dict[str, Any] | None = None):
+        super().__init__()
+
+        if dct is not None:
+            for ns, v in dct.items():
+                self.set_namespace(ns, v)
+
+    def __getattr__(self, name: str, set_nested: bool = False) -> Any:
         if (result := self.get(name)) is not None:
             return result
 
-        if set_subgraphs:
+        if set_nested:
             self[name] = Lookup()
             return self[name]
 
@@ -65,7 +72,7 @@ class Lookup(dict):
         try:
             current = self
             for item in path_items:
-                current = current.__getattr__(item, set_subgraphs=False)
+                current = current.__getattr__(item, set_nested=False)
         except AttributeError:
             current = None
 
@@ -77,7 +84,7 @@ class Lookup(dict):
 
         current = self
         for i, item in enumerate(path_items, start=1):
-            current = current.__getattr__(item, set_subgraphs=True)
+            current = current.__getattr__(item, set_nested=True)
 
             if not isinstance(current, Lookup):
                 current_ns = ".".join(path_items[:i])
@@ -89,3 +96,20 @@ class Lookup(dict):
             raise SetNamespaceError(msg)
 
         current[name] = value
+
+    def get_subset(self, nodes: set[str]) -> "Lookup":
+        subset = Lookup()
+        missing: set[str] = set()
+        for namespace in nodes:
+            node = self.get_namespace(namespace)
+            if node is None:
+                missing.add(namespace)
+                continue
+
+            subset.set_namespace(namespace, node)
+
+        if any(missing):
+            # TODO: add error type
+            raise ValueError(*missing)
+
+        return subset
