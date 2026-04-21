@@ -3,6 +3,8 @@ from abc import ABC
 from textwrap import dedent
 from typing import Any, ClassVar, Protocol, TypeVar, runtime_checkable
 
+from compgraph.core.log import dependency_logger as logger
+
 
 @runtime_checkable
 class ResolvableDependency(Protocol):
@@ -85,6 +87,8 @@ class Requires:
                 raise ValueError(dedent(msg))
 
             obj.__class_dependencies__ |= self.dependencies
+            msg = f"Adding dependencies to class [id: {id(obj)}] {obj}: {self.dependencies}"
+            logger.info(msg)
         else:
             if not isinstance(obj, AbstractDependencyMixin) and not hasattr(
                 obj, "__instance_dependencies__"
@@ -92,6 +96,8 @@ class Requires:
                 setattr(obj, "__instance_dependencies__", set())
 
             obj.__instance_dependencies__ |= self.dependencies
+            msg = f"Added dependencies to instance [id: {id(obj)}] {obj}: {self.dependencies}"
+            logger.info(msg)
 
         return obj
 
