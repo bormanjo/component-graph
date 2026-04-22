@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-import compgraph as cg
+from compgraph import Graph
 
 
 class IsBusinessDayScenario(BaseModel):
@@ -92,7 +92,7 @@ async def test_calendar_factory_is_business_day(
             **scenario.params,
         },
     }
-    graph = await cg.Graph.from_config(config)
+    graph = await Graph.from_config(config)
     assert graph.calendar.is_business_day(scenario.date) is scenario.expected
 
 
@@ -204,7 +204,7 @@ async def test_calendar_factory_add_business_day(
             **scenario.params,
         },
     }
-    graph = await cg.Graph.from_config(config)
+    graph = await Graph.from_config(config)
     actual = graph.calendar.add_business_days(scenario.date, scenario.num_days)
     assert actual == scenario.expected
 
@@ -254,7 +254,7 @@ async def test_calendar_factory_get_business_days(
             **scenario.params,
         },
     }
-    graph = await cg.Graph.from_config(config)
+    graph = await Graph.from_config(config)
     calendar = graph.calendar
     business_days = calendar.get_business_days(scenario.start, scenario.end)
     for biz_day in business_days:

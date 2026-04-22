@@ -5,10 +5,15 @@ from typing import Any
 import pandas as pd
 import pandas_market_calendars as mcal
 
-from compgraph.graph import BaseFactory
+from compgraph.graph import AbstractFactory
 
 
-class AbstractCalendarFactory(BaseFactory, node_namespace="calendar"):
+class AbstractCalendarFactory(
+    AbstractFactory,
+    node_namespace="calendar",
+    skip_setup=True,
+    skip_run=True,
+):
     @abstractmethod
     def is_business_day(self, date: datetime.date) -> bool: ...
 

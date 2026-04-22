@@ -1,5 +1,6 @@
 import pytest
 
+from compgraph.core.error import MissingDependenciesError
 from compgraph.core.lookup import SetNamespaceError, Lookup, is_valid_namespace
 
 
@@ -40,7 +41,7 @@ def test_dict_operations() -> None:
 
 
 def test_namespace_operations() -> None:
-    lookup = Lookup()
+    lookup = Lookup[int]()
     lookup.set_namespace("abc", 1)
 
     assert lookup.get_namespace("abc") == 1
@@ -53,7 +54,7 @@ def test_namespace_operations() -> None:
 
 
 def test_set_namespace_cannot_overwrite_existing_node() -> None:
-    lookup = Lookup()
+    lookup = Lookup[int]()
     lookup.set_namespace("abc", 1)
 
     msg = "Cannot overwrite existing namespace: `abc`"
@@ -62,7 +63,7 @@ def test_set_namespace_cannot_overwrite_existing_node() -> None:
 
 
 def test_nested_operations() -> None:
-    lookup = Lookup()
+    lookup = Lookup[int]()
     lookup.set_namespace("abc.ijk", 1)
     lookup.set_namespace("abc.xyz", 2)
 
@@ -84,5 +85,5 @@ def test_lookup_subset() -> None:
     lookup_namespaces = {ns for ns, _ in lookup.iter_namespaces()}
     assert set(subset_namespaces).issubset(lookup_namespaces)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(MissingDependenciesError):
         lookup.get_subset({"xy", "z"})

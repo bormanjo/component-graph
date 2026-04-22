@@ -1,10 +1,14 @@
+import logging
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from compgraph.core.dependency import AbstractDependencyMixin, ResolvedDependency
+from compgraph.core.dependency import (
+    AbstractDependencyMixin,
+    ResolvedDependency,
+)
 from compgraph.core.log import dependency_logger as dep_logger
 from compgraph.core.lookup import Lookup
 
@@ -16,37 +20,55 @@ class NodeState(Enum):
     SETUP = auto()  # node setup in progress
     READY = auto()  # node ready for use
 
-    def is_ready(self) -> bool:
-        return self == NodeState.READY
+
+NodeT = TypeVar("NodeT", bound="AbstractNode")
 
 
 class AbstractNode(
-    BaseModel,
-    ABC,
     AbstractDependencyMixin,
+    ABC,
+    BaseModel,
 ):
     # Private Interface ----------------------------------------------------------------
     __node_dep__: Lookup
     __node_state__: NodeState = NodeState.INITIALIZED
     __node_resolved_dependencies__: set[ResolvedDependency] = set()
 
-    async def __node_resolve_and_set_dependencies(self, **kwargs) -> None:
+    def __init_subclass__(
+        cls,
+        *args: Any,
+        skip_setup: bool = False,
+        skip_run: bool = False,
+        **kwargs: Any,
+    ) -> None:
+        super().__init_subclass__(*args, **kwargs)
+
+        async def no_op(self) -> None:  # pragma: no cover
+            pass
+
+        if skip_setup:
+            cls._setup = no_op  # type: ignore
+
+        if skip_run:
+            cls._run = no_op  # type: ignore
+
+    def __node_resolve_and_set_dependencies__(self, **kwargs: Any) -> None:
         self.__node_resolved_dependencies__ = self._resolve_dependencies(**kwargs)
         self.__node_state__ = NodeState.DEPENDENCIES_RESOLVED
 
-        msg = f"Resolved dependencies set on node [id: {id(self)}] {id.__name__}: {self.__node_resolved_dependencies__}"
+        msg = f"Resolved dependencies set on node [id: {id(self)}] {self.__repr_name__()}: {self.__node_resolved_dependencies__}"
         dep_logger.info(msg)
 
-    async def __node_inject_dependencies(self, dep: Lookup) -> None:
+    def __node_inject_dependencies__(self, dep: Lookup) -> None:
         self.__node_dep__ = dep
         self.__node_state__ = NodeState.DEPENDENCIES_INJECTED
 
-    async def __node_setup(self) -> None:
+    async def __node_setup__(self) -> None:
         self.__node_state__ = NodeState.SETUP
         await self._setup()
         self.__node_state__ = NodeState.READY
 
-    async def __node_run(self) -> None:
+    async def __node_run__(self) -> None:
         await self._run()
 
     # Public Interface -----------------------------------------------------------------
@@ -66,14 +88,19 @@ class AbstractNode(
         return self.__node_resolved_dependencies__
 
 
-def create_node(
-    klass: type[AbstractNode],
-    node_dep: Lookup,
-    **params: Any,
-) -> AbstractNode:
-    node = klass.model_validate(params)
-    node.__node_resolve_and_set_dependencies()
+class LogMixin(AbstractNode):
+    @property
+    def log(self) -> logging.Logger:
+        return self.dep.log(self.__repr_name__())
 
-    subset = node_dep.get_subset(node.resolved_dependencies)
-    node.__node_inject_dependencies(subset)
+
+def create_node_from(klass: type[NodeT], config: Any) -> NodeT:
+    node = klass.model_validate(config)
+    node.__node_resolve_and_set_dependencies__()
+    return node
+
+
+def inject_node_with(node: NodeT, dep: Lookup) -> NodeT:
+    subset = dep.get_subset(node.resolved_dependencies)
+    node.__node_inject_dependencies__(subset)
     return node

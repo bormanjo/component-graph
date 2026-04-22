@@ -3,6 +3,7 @@ from abc import ABC
 from textwrap import dedent
 from typing import Any, ClassVar, Protocol, TypeVar, runtime_checkable
 
+from compgraph.core.error import DependencyRegistrationError
 from compgraph.core.log import dependency_logger as logger
 
 
@@ -20,8 +21,12 @@ def get_unresolved_dependencies(obj: Any) -> set[UnresolvedDependency]:
     inherited_deps = {
         dep for base in bases for dep in getattr(base, "__class_dependencies__", set())
     }
-    class_deps = getattr(obj, "__class_dependencies__", set())
-    inst_deps = getattr(obj, "__instance_dependencies__", set())
+    class_deps: set[UnresolvedDependency] = getattr(
+        obj, "__class_dependencies__", set()
+    )
+    inst_deps: set[UnresolvedDependency] = getattr(
+        obj, "__instance_dependencies__", set()
+    )
 
     return inherited_deps | class_deps | inst_deps
 
@@ -45,8 +50,8 @@ class AbstractDependencyMixin(ABC):
             match obj:
                 case str(dep):
                     resolved_deps.add(dep)
-                case ResolvableDependency():
-                    resolved_deps |= obj(**kwargs)
+                case ResolvableDependency() as resolvable_dep:
+                    resolved_deps |= resolvable_dep(**kwargs)
                 case _:
                     raise TypeError(
                         f"Expected ResolvableDependency or str, got {type(obj)}"
@@ -78,24 +83,21 @@ class Requires:
         """
         if inspect.isclass(obj):
             if not issubclass(obj, AbstractDependencyMixin):
-                # TODO: add error type
                 msg = f"""
                 Dependencies cannot be registered on {obj} because it does not
                 subclass `DependencyMixin`. Either a). call `requires()` on an instance
                 of {obj} or make {obj} a subclass of `DependencyMixin`.
                 """
-                raise ValueError(dedent(msg))
+                raise DependencyRegistrationError(dedent(msg))
 
             obj.__class_dependencies__ |= self.dependencies
             msg = f"Adding dependencies to class [id: {id(obj)}] {obj}: {self.dependencies}"
             logger.info(msg)
         else:
-            if not isinstance(obj, AbstractDependencyMixin) and not hasattr(
-                obj, "__instance_dependencies__"
-            ):
+            if not hasattr(obj, "__instance_dependencies__"):
                 setattr(obj, "__instance_dependencies__", set())
 
-            obj.__instance_dependencies__ |= self.dependencies
+            obj.__instance_dependencies__ |= self.dependencies  # type: ignore
             msg = f"Added dependencies to instance [id: {id(obj)}] {obj}: {self.dependencies}"
             logger.info(msg)
 

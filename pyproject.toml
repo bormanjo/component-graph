@@ -32,7 +32,7 @@ classifiers = [
 dependencies = [
     "pandas>2",
     "pandas-market-calendars",
-    "pydantic~=2.9",
+    "pydantic>=2.9",
     "networkx",
 ]
 

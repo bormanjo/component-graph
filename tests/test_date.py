@@ -38,8 +38,6 @@ async def test_date_factory(
     }
 
     graph = await cg.Graph.from_config(config | log_config)
-
-    assert graph.date.state.is_ready()
     assert graph.date() == expected
 
 

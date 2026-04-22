@@ -2,10 +2,10 @@ import logging
 
 import pytest
 
-import compgraph as cg
+from compgraph import Graph
 
 
-def assert_sends_logs(caplog: pytest.LogCaptureFixture, graph: cg.Graph) -> None:
+def assert_sends_logs(caplog: pytest.LogCaptureFixture, graph: Graph) -> None:
     caplog.clear()
     caplog.set_level(logging.DEBUG)
 
@@ -32,15 +32,15 @@ def assert_sends_logs(caplog: pytest.LogCaptureFixture, graph: cg.Graph) -> None
 
 
 @pytest.mark.asyncio
-async def test_basic_config_log_factory(caplog: pytest.LogCaptureFixture) -> None:
+async def test_log_factory(caplog: pytest.LogCaptureFixture) -> None:
     config = {
         "log": {
-            "class": "compgraph.log.BasicConfigLogFactory",
-            "level": "DEBUG",
+            "class": "compgraph.log.LogFactory",
+            "config": {"loggers": {"compgraph.graph.test": {"level": "DEBUG"}}},
         },
     }
 
-    graph = await cg.Graph.from_config(config)
+    graph = await Graph.from_config(config)
     logger = graph.log("test")
     assert logger.level == logging.DEBUG
 

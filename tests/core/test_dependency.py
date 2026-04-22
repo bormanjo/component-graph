@@ -7,6 +7,7 @@ from compgraph.core.dependency import (
     requires,
     get_unresolved_dependencies,
 )
+from compgraph.core.error import DependencyRegistrationError
 
 
 class ResolvableXYZDependency:
@@ -67,7 +68,7 @@ def test_requires_illegal_dependency() -> None:
     class NotAResolvableDependency:
         pass
 
-    @requires(NotAResolvableDependency())
+    @requires(NotAResolvableDependency())  # type: ignore
     class MyClass(AbstractDependencyMixin):
         pass
 
@@ -90,19 +91,19 @@ def test_mixin_child_inherits_class_deps_from_parent() -> None:
 
 
 def test_requires_on_arbitrary_object() -> None:
-    with pytest.raises(ValueError, match="Dependencies cannot be registered*"):
+    with pytest.raises(DependencyRegistrationError):
 
         @requires("abc")
-        class MyClass:
+        class MyClass1:
             pass
 
-    class MyClass:
+    class MyClass2:
         pass
 
-    with pytest.raises(ValueError, match="Dependencies cannot be registered*"):
-        requires("abc")(MyClass)
+    with pytest.raises(DependencyRegistrationError):
+        requires("abc")(MyClass2)
 
-    obj = requires("abc")(MyClass())
+    obj = requires("abc")(MyClass2())
 
     assert not hasattr(obj, "__class_dependencies__")
     assert getattr(obj, "__instance_dependencies__") == {"abc"}

@@ -5,10 +5,15 @@ from zoneinfo import ZoneInfo
 
 from pydantic import field_validator
 
-from compgraph.graph import BaseFactory
+from compgraph.graph import AbstractFactory
 
 
-class AbstractDateFactory(BaseFactory, node_namespace="date"):
+class AbstractDateFactory(
+    AbstractFactory,
+    node_namespace="date",
+    skip_setup=True,
+    skip_run=True,
+):
     @abstractmethod
     def __call__(self) -> datetime.date: ...
 
@@ -29,7 +34,7 @@ def zoneinfo_from(v: Any) -> ZoneInfo:
 
 
 class SystemDateFactory(AbstractDateFactory):
-    timezone: ZoneInfo = "America/New_York"
+    timezone: ZoneInfo = "America/New_York"  # type: ignore
 
     _tz_validator = field_validator("timezone", mode="before")(zoneinfo_from)
 

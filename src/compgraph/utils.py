@@ -1,5 +1,15 @@
+import datetime
 import importlib
 from typing import Any
+from zoneinfo import ZoneInfo
+
+from pydantic import AwareDatetime
+
+TZ_EST = ZoneInfo("America/New_York")
+
+
+def est_now() -> AwareDatetime:
+    return datetime.datetime.now(tz=TZ_EST)
 
 
 def import_object(location: str) -> Any:

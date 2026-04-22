@@ -1,16 +1,15 @@
+from __future__ import annotations  # tells pydantic to defer type hint evaluation
+
 import asyncio
 import inspect
 from collections import defaultdict
 from enum import IntEnum
 from typing import Generic, Protocol, TypeVar
 
-from pydantic import BaseModel, PrivateAttr
+from pydantic import PrivateAttr
 
-from compgraph.graph import BaseComponent, BaseFactory
-
-
-class AbstractEvent(BaseModel):
-    pass
+from compgraph.events import AbstractEvent
+from compgraph.graph import AbstractComponent, AbstractFactory
 
 
 EventT = TypeVar("EventT", bound=AbstractEvent)
@@ -23,8 +22,8 @@ class CallbackPriority(IntEnum):
     LOW = 1
 
 
-class EventSender(BaseComponent, Generic[EventT]):
-    kind: type[AbstractEvent]
+class EventSender(AbstractComponent, Generic[EventT], skip_setup=True, skip_run=True):
+    kind: type[EventT]
 
     class Callback(Protocol):
         async def __call__(self) -> None: ...
@@ -42,35 +41,37 @@ class EventSender(BaseComponent, Generic[EventT]):
 
     async def send(self, event: EventT) -> None:
         """Triggers all callbacks registered with this event type"""
-        self.log.debug("Sending event: %s", event)
+        self.log.debug("Sending event: %s", repr(event))
 
         for priority in CallbackPriority:
             if (callbacks := self._callback_map.get(priority)) is None:
                 continue  # pragma: no cover
 
-            await asyncio.gather(
-                *(
-                    clbk(event=event) if self._send_event(clbk) else clbk()
-                    for clbk in callbacks
-                )
-            )
+            coros = [
+                clbk(event=event) if self._send_event(clbk) else clbk()  # type: ignore
+                for clbk in callbacks
+            ]
+            async with asyncio.TaskGroup() as tg:
+                _ = [tg.create_task(coro) for coro in coros]
 
     def register_callback(
         self,
         callback: Callback | CallbackWithEvent,
-        priority=CallbackPriority.LOW,
+        priority: CallbackPriority = CallbackPriority.LOW,
     ) -> None:
         self._callback_map[priority].append(callback)
 
 
-class EventSenderFactory(BaseFactory, node_namespace="event_sender"):
+class EventSenderFactory(
+    AbstractFactory, node_namespace="event.sender", skip_setup=True, skip_run=True
+):
     _event_senders: dict[type[AbstractEvent], EventSender] = PrivateAttr(default={})
 
-    def __call__(self, event_cls: type[EventT]) -> EventSender[EventT]:
+    async def __call__(self, event_cls: type[EventT]) -> EventSender[EventT]:
         if event_cls not in self._event_senders:
-            self.log.debug("Creating new EventSender for event")
-            self._event_senders[event_cls] = self._create_component(
-                klass=EventSender,
+            self.log.debug("Creating new EventSender[%s]", event_cls)
+            self._event_senders[event_cls] = await self._create_component(
+                klass=EventSender,  # type: ignore
                 kind=event_cls,
             )
 
