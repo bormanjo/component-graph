@@ -5,7 +5,7 @@ import pytest
 from pydantic import BaseModel
 
 from compgraph.events import AbstractEvent
-from compgraph.event.sender import CallbackPriority
+from compgraph.event.sender import CallbackPriority, EventRecorder
 from compgraph import Graph
 
 
@@ -52,12 +52,31 @@ async def test_event_sender_callbacks_with_priority(log_config: dict[str, Any]) 
         tracer = EventTracer(timestamp=time.time_ns(), priority=CallbackPriority.HIGH)
         tracers.append(tracer)
 
-    sender.register_callback(low_priority_callback, CallbackPriority.LOW)
-    sender.register_callback(medium_priority_callback, CallbackPriority.MEDIUM)
-    sender.register_callback(high_priority_callback, CallbackPriority.HIGH)
+    sender.register_callback(low_priority_callback, priority=CallbackPriority.LOW)
+    sender.register_callback(medium_priority_callback, priority=CallbackPriority.MEDIUM)
+    sender.register_callback(high_priority_callback, priority=CallbackPriority.HIGH)
 
     await sender.send(event=expected_event)
 
     assert len(tracers) == 3
     assert tracers[0] > tracers[1]
     assert tracers[1] > tracers[2]
+
+
+@pytest.mark.asyncio
+async def test_event_sender_one_and_done(log_config: dict[str, Any]) -> None:
+    config = {
+        "event.sender": {"class": "compgraph.event.sender.EventSenderFactory"},
+    }
+
+    graph = await Graph.from_config(config | log_config)
+    sender = await graph.event.sender(DummyEvent)
+    recorder = EventRecorder[DummyEvent]()
+    sender.register_callback(recorder, one_and_done=True)
+    
+    event1 = DummyEvent(data="1")
+    event2 = DummyEvent(data="2")
+    await sender.send(event1)
+    await sender.send(event2)
+
+    assert recorder.events == [event1]
