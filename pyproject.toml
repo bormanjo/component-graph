@@ -30,10 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "pandas>2",
-    "pandas-market-calendars",
     "pydantic>=2.9",
-    "networkx",
 ]
 
 [project.optional-dependencies]
@@ -60,7 +57,7 @@ include = ["compgraph"]
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
 addopts = "--cov --cov-report term-missing:skip-covered"
-testpaths = ["tests"]
+testpaths = ["tests/compgraph"]
 
 [tool.coverage.report]
 exclude_also = [

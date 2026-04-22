@@ -73,7 +73,7 @@ async def test_event_sender_one_and_done(log_config: dict[str, Any]) -> None:
     sender = await graph.event.sender(DummyEvent)
     recorder = EventRecorder[DummyEvent]()
     sender.register_callback(recorder, one_and_done=True)
-    
+
     event1 = DummyEvent(data="1")
     event2 = DummyEvent(data="2")
     await sender.send(event1)
