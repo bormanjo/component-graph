@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `pandas`
   - `pandas-market-calendar`
 
+### Updated
+
+- Renamed from `compgraph` to `modulon`
+
 ## [0.3.0]
 
 - Prepare for public release
