@@ -13,7 +13,7 @@
   - [X] `event.replayer`
 - [X] 100% test coverage
 - [X] Make pandas + market calendar dependencies optional
-- Rename project to `modular-graph`
+- [X] Rename project to `modulon`
 - [X] Add mypy 1.20 to pre-commit config
 
 ## v0.5.0

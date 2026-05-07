@@ -48,6 +48,12 @@ class EventRecorder(BaseModel, Generic[EventT]):
 
 
 class EventSender(AbstractComponent, Generic[EventT], skip_setup=True, skip_run=True):
+    """
+    The `EventSender` can be used to `.send_event()` and `.register_callback()` to be
+    fired when an event is sent. Callbacks are executed in `asyncio.TaskGroup`s based on
+    descending order of priority.
+    """
+
     kind: type[EventT]
 
     _callback_map: dict[CallbackPriority, dict[CallbackID, CallbackT]] = defaultdict(
@@ -70,7 +76,7 @@ class EventSender(AbstractComponent, Generic[EventT], skip_setup=True, skip_run=
 
         return wrapped_callback
 
-    async def send(self, event: EventT) -> None:
+    async def send_event(self, event: EventT) -> None:
         """Triggers all callbacks registered with this event type"""
         self.log.debug("Sending event: %s", repr(event))
 
@@ -120,6 +126,10 @@ class EventSenderFactory(
     skip_setup=True,
     skip_run=True,
 ):
+    """
+    A factory for producing an event sender of the given event type.
+    """
+
     _event_senders: dict[type[AbstractEvent], EventSender] = PrivateAttr(default={})
 
     async def __call__(self, event_cls: type[EventT]) -> EventSender[EventT]:

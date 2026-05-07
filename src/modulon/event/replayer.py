@@ -47,7 +47,7 @@ class AbstractEventReplayer(AbstractFactory, node_namespace="event.replayer"):
                 await asyncio.sleep(delta.total_seconds())
 
             self.log.info("Replaying event %d/%d", i, len(self._events))
-            await sender.send(event)
+            await sender.send_event(event)
             last_event_time = event.as_of
 
         self.log.info("Event replay complete")

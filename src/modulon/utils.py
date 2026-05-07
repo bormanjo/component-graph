@@ -14,6 +14,7 @@ def est_now() -> AwareDatetime:
 
 
 def import_object(location: str) -> Any:
+    """Import the python object at the given location"""
     module_path, obj_name = location.rsplit(".", maxsplit=1)
 
     try:
@@ -24,6 +25,7 @@ def import_object(location: str) -> Any:
 
 
 def get_type_location(obj: Any) -> str:
+    """Get the importable location of an object's type"""
     cls = type(obj)
     return f"{cls.__module__}.{cls.__qualname__}"
 

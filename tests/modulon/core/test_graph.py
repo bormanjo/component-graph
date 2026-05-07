@@ -19,6 +19,14 @@ async def test_log_graph() -> None:
 
 
 @pytest.mark.asyncio
+async def test_bad_namespace() -> None:
+    config = {123: {"class": "modulon.event.sender.EventSenderFactory"}}
+
+    with pytest.raises(TypeError):
+        await Graph.from_config(config)  # type: ignore
+
+
+@pytest.mark.asyncio
 async def test_graph_invalid_factory_namespace() -> None:
     config = {"event": {"class": "modulon.event.sender.EventSenderFactory"}}
 

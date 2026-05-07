@@ -62,7 +62,12 @@ class AbstractDependencyMixin(ABC):
 
 class Requires:
     """
-    A decorator used to register unresolved dependencies on any object
+    A decorator used to register unresolved dependencies on any object/class.
+
+    Unresolved dependencies are resolved during `Graph` initialization.
+
+    Note: while this decorator can be used objects and classes, its use on classes
+    is limited to subclasses of `AbstractDependencyMixin`.
     """
 
     T = TypeVar("T")
@@ -85,8 +90,8 @@ class Requires:
             if not issubclass(obj, AbstractDependencyMixin):
                 msg = f"""
                 Dependencies cannot be registered on {obj} because it does not
-                subclass `DependencyMixin`. Either a). call `requires()` on an instance
-                of {obj} or make {obj} a subclass of `DependencyMixin`.
+                subclass `AbstractDependencyMixin`. Either a). call `requires()` on an
+                instance of {obj} or make {obj} a subclass of `AbstractDependencyMixin`.
                 """
                 raise DependencyRegistrationError(dedent(msg))
 

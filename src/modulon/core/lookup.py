@@ -37,7 +37,7 @@ class Lookup(dict[str, V]):
             for ns, v in dct.items():
                 self.set_namespace(ns, v)
 
-    def __getattr__(self, name: str, set_nested: bool = False) -> V:
+    def __getattr__(self, name: str, *, set_nested: bool = False) -> V:
         if (result := self.get(name)) is not None:
             return result
 

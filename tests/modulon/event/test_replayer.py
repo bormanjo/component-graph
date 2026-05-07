@@ -119,7 +119,11 @@ async def test_sqlite_event_replayer(
     conn.executemany(
         "INSERT INTO events (event_type, as_of, data) VALUES (?, ?, ?)",
         [
-            ("tests.modulon.event.test_replayer.DummyEvent", event_from_json(j).as_of.isoformat(), j)
+            (
+                "tests.modulon.event.test_replayer.DummyEvent",
+                event_from_json(j).as_of.isoformat(),
+                j,
+            )
             for j in event_jsons
         ],
     )

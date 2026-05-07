@@ -13,11 +13,13 @@ ImportableEvent = ImportString[type[AbstractEvent]]
 
 
 def event_to_json(event: AbstractEvent) -> str:
+    """Serialized an event to JSON"""
     data = {"_event_type": get_type_location(event)} | event.model_dump(mode="json")
     return json.dumps(data, sort_keys=True)
 
 
 def event_from_json(data: str) -> AbstractEvent:
+    """Deserialize an event from JSON"""
     data = json.loads(data.strip())
     assert isinstance(data, dict)
     event_type_location = data.pop("_event_type")

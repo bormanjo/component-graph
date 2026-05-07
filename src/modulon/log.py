@@ -10,6 +10,8 @@ from modulon.core.log import graph_logger
 
 
 class AbstractLogFactory(AbstractNoLogFactory, node_namespace="log"):
+    """A factory for producing standard library `logging.Logger`s"""
+
     @abstractmethod
     def __call__(self, name: str) -> logging.Logger: ...
 

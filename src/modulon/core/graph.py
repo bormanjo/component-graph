@@ -16,6 +16,32 @@ GraphConfig = dict[str, FactoryConfig]
 
 
 class Graph(Lookup[AbstractFactory]):
+    """
+    A modulon `Graph` is a collection of factories and components materialized from a
+    dictionary-like config (e.g. a python `dict` or JSON object).
+
+    A graph can be instantiated like so:
+
+    ```python
+    from modulon import Graph
+
+    config = {
+        "log": {  # each top-level string represents a namespace
+            "class": "modulon.log.LogFactory"  # the class to be imported
+            "config": {  # dictionary passed directly to `LogFactory`, as required by the class definition
+                "formatters": {
+                    "default": {"format": "%(levelname)s - %(message)s"}
+                }
+            }
+        }
+    }
+
+    graph = await Graph.from_config(config)  # initalize the graph and setup factories
+    my_logger = graph.log("my-logger")  # graph ready for use
+    my_logger.info("hello world!")
+    ```
+    """
+
     def _initialize_and_set_factory(self, namespace: str, config: FactoryConfig):
         cls_location = config.pop("class")
         cls = import_object(cls_location)
@@ -62,8 +88,12 @@ class Graph(Lookup[AbstractFactory]):
         graph = cls()
 
         # Create factory nodes and assign to corresponding namespaces
-
         for namespace, factory_cfg in config.items():
+            if not isinstance(namespace, str):
+                raise TypeError(
+                    "The top-level config keys (AKA namespaces), can only be strings. "
+                    f"Got {namespace} ({type(namespace)})"
+                )
             try:
                 graph._initialize_and_set_factory(namespace, factory_cfg)
             except Exception as err:

@@ -36,7 +36,7 @@ async def test_in_memory_event_archiver(log_config: dict[str, Any]) -> None:
     sender = await graph.event.sender(DummyEvent)
     events = [DummyEvent(item=i) for i in range(10)]
     for event in events:
-        await sender.send(event)
+        await sender.send_event(event)
 
     recorder = archiver._event_recorders[DummyEvent]
     assert recorder.events == events
@@ -69,7 +69,7 @@ async def test_jsonl_file_event_archiver(
 
     async with asyncio.TaskGroup() as tg:
         run_task = tg.create_task(graph.run())
-        _ = [tg.create_task(sender.send(event)) for event in events]
+        _ = [tg.create_task(sender.send_event(event)) for event in events]
         await asyncio.sleep(0.02)
         run_task.cancel()
 
@@ -106,7 +106,7 @@ async def test_sqlite_event_archiver(
 
     async with asyncio.TaskGroup() as tg:
         run_task = tg.create_task(graph.run())
-        _ = [tg.create_task(sender.send(event)) for event in events]
+        _ = [tg.create_task(sender.send_event(event)) for event in events]
         await asyncio.sleep(0.05)
         run_task.cancel()
 

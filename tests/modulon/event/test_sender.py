@@ -56,7 +56,7 @@ async def test_event_sender_callbacks_with_priority(log_config: dict[str, Any]) 
     sender.register_callback(medium_priority_callback, priority=CallbackPriority.MEDIUM)
     sender.register_callback(high_priority_callback, priority=CallbackPriority.HIGH)
 
-    await sender.send(event=expected_event)
+    await sender.send_event(event=expected_event)
 
     assert len(tracers) == 3
     assert tracers[0] > tracers[1]
@@ -76,7 +76,7 @@ async def test_event_sender_one_and_done(log_config: dict[str, Any]) -> None:
 
     event1 = DummyEvent(data="1")
     event2 = DummyEvent(data="2")
-    await sender.send(event1)
-    await sender.send(event2)
+    await sender.send_event(event1)
+    await sender.send_event(event2)
 
     assert recorder.events == [event1]
