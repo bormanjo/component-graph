@@ -89,11 +89,16 @@ class SQLiteEventReplayer(AbstractEventReplayer):
     """
 
     db_path: Path
+    event_query: str = """
+    SELECT json(data)
+    FROM events
+    ORDER BY as_of
+    """
 
     async def _load_events(self) -> list[AbstractEvent]:
         conn = sqlite3.connect(self.db_path)
         try:
-            cursor = conn.execute("SELECT json(data) FROM events ORDER BY as_of")
+            cursor = conn.execute(self.event_query)
             return [event_from_json(row[0]) for row in cursor.fetchall()]
         finally:
             conn.close()
