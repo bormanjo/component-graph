@@ -11,8 +11,8 @@
   - [X] Refactor exceptions
 - [X] Add `event` subgraph
   - [X] `event.sender`
-  - `event.archiver`
-  - `event.replayer`
+  - [X] `event.archiver`
+  - [X] `event.replayer`
 - [X] 100% test coverage
 - Make pandas + market calendar dependencies optional
 - Rename project to `modular-graph`
