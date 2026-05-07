@@ -8,6 +8,8 @@ from compgraph.core.dependency import (
     get_unresolved_dependencies,
 )
 from compgraph.core.error import DependencyRegistrationError
+from compgraph.core.factory import AbstractFactory
+from compgraph.event.archiver import AbstractEventArchiver, JsonlFileEventArchiver
 
 
 class ResolvableXYZDependency:
@@ -119,3 +121,16 @@ def test_different_instance_dependencies() -> None:
 
     assert get_unresolved_dependencies(obj1) == {"abc"}
     assert get_unresolved_dependencies(obj2) == {"xyz"}
+
+
+@pytest.mark.parametrize(
+    argnames=["obj", "expected"],
+    argvalues=[
+        (AbstractFactory, {"log"}),
+        (AbstractEventArchiver, {"event.sender", "log"}),
+        (JsonlFileEventArchiver, {"event.sender", "log"}),
+    ],
+)
+def test_factory_get_unresolved_dependencies(obj: Any, expected: set[Any]) -> None:
+    unresolved_deps = get_unresolved_dependencies(obj)
+    assert unresolved_deps == expected

@@ -4,7 +4,7 @@ from graphlib import TopologicalSorter
 from typing import Any, Self
 
 from compgraph.core.error import FactoryInvalidNamespaceError
-from compgraph.core.factory import AbstractFactory
+from compgraph.core.factory import AbstractFactory, AbstractNoLogFactory
 from compgraph.core.log import core_logger as logger
 from compgraph.core.lookup import Lookup
 from compgraph.core.node import create_node_from, inject_node_with
@@ -18,7 +18,9 @@ GraphConfig = dict[str, FactoryConfig]
 class Graph(Lookup[AbstractFactory]):
     def _initialize_and_set_factory(self, namespace: str, config: FactoryConfig):
         cls_location = config.pop("class")
-        if not issubclass(cls := import_object(cls_location), AbstractFactory):
+        cls = import_object(cls_location)
+
+        if namespace != "log" and not issubclass(cls, AbstractFactory):
             raise TypeError(f"{cls_location} does not implement AbstractFactory")
 
         factory = create_node_from(cls, config)
@@ -48,7 +50,7 @@ class Graph(Lookup[AbstractFactory]):
             async with asyncio.TaskGroup() as tg:
                 for namespace in namespaces:
                     factory = self.get_namespace(namespace)
-                    assert isinstance(factory, AbstractFactory)
+                    assert isinstance(factory, (AbstractFactory, AbstractNoLogFactory))
                     task = tg.create_task(
                         coro=factory.__node_setup__(),
                         name=f"factory-setup({namespace})",

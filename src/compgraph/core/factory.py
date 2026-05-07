@@ -30,8 +30,7 @@ class NamespaceMixin:
         return self.__node_namespace__
 
 
-@requires("log")
-class AbstractFactory(LogMixin, NamespaceMixin, AbstractNode):
+class AbstractNoLogFactory(LogMixin, NamespaceMixin, AbstractNode):
     """
     A factory is a top-level node in a graph and is uniquely identified by its namespace.
 
@@ -47,3 +46,8 @@ class AbstractFactory(LogMixin, NamespaceMixin, AbstractNode):
         inject_node_with(component, self.dep)
         await component.__node_setup__()
         return component
+
+
+@requires("log")
+class AbstractFactory(AbstractNoLogFactory):
+    pass

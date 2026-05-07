@@ -17,7 +17,7 @@ ResolvedDependency = str
 
 
 def get_unresolved_dependencies(obj: Any) -> set[UnresolvedDependency]:
-    bases = obj.__bases__ if inspect.isclass(obj) else type(obj).__bases__
+    bases = obj.mro() if inspect.isclass(obj) else type(obj).mro()
     inherited_deps = {
         dep for base in bases for dep in getattr(base, "__class_dependencies__", set())
     }

@@ -5,11 +5,11 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from compgraph.core.factory import AbstractFactory
+from compgraph.core.factory import AbstractNoLogFactory
 from compgraph.core.log import graph_logger
 
 
-class AbstractLogFactory(AbstractFactory, node_namespace="log"):
+class AbstractLogFactory(AbstractNoLogFactory, node_namespace="log"):
     @abstractmethod
     def __call__(self, name: str) -> logging.Logger: ...
 

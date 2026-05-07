@@ -23,8 +23,6 @@ if TYPE_CHECKING:
     class AbstractFactory(factory.AbstractFactory):
         @property
         def dep(self) -> Graph: ...
-
-
 else:
     from compgraph.core.component import AbstractComponent
     from compgraph.core.factory import AbstractFactory

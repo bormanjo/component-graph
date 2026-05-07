@@ -94,13 +94,15 @@ class LogMixin(AbstractNode):
         return self.dep.log(self.__repr_name__())
 
 
-def create_node_from(klass: type[NodeT], config: Any) -> NodeT:
-    node = klass.model_validate(config)
+def create_node_from(cls: type[NodeT], config: Any) -> NodeT:
+    """Create a new node instance from the given `cls` and `config`"""
+    node = cls.model_validate(config)
     node.__node_resolve_and_set_dependencies__()
     return node
 
 
 def inject_node_with(node: NodeT, dep: Lookup) -> NodeT:
+    """Inject the `node` with its subset of dependencies from `dep`"""
     subset = dep.get_subset(node.resolved_dependencies)
     node.__node_inject_dependencies__(subset)
     return node

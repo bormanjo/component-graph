@@ -20,7 +20,7 @@ async def test_log_graph() -> None:
 
 @pytest.mark.asyncio
 async def test_graph_invalid_factory_namespace() -> None:
-    config = {"abc": {"class": "compgraph.log.LogFactory"}}
+    config = {"event": {"class": "compgraph.event.sender.EventSenderFactory"}}
 
     with pytest.raises(FactoryInvalidNamespaceError):
         await Graph.from_config(config)

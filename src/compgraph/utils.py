@@ -1,9 +1,10 @@
 import datetime
 import importlib
-from typing import Any
+from pathlib import Path
+from typing import Annotated, Any
 from zoneinfo import ZoneInfo
 
-from pydantic import AwareDatetime
+from pydantic import AwareDatetime, AfterValidator
 
 TZ_EST = ZoneInfo("America/New_York")
 
@@ -20,3 +21,20 @@ def import_object(location: str) -> Any:
         return getattr(module, obj_name)
     except Exception as err:
         raise ImportError(f"Could not locate: `{location}`") from err
+
+
+def get_type_location(obj: Any) -> str:
+    cls = type(obj)
+    return f"{cls.__module__}.{cls.__qualname__}"
+
+
+def get_fpath_suffix_validator(suffix: str):
+    def validate_fpath_suffix(fpath: Path) -> Path:
+        if fpath.suffix != suffix:
+            raise ValueError(f"Expected {suffix} in {fpath}")
+        return fpath
+
+    return validate_fpath_suffix
+
+
+JsonlFilePath = Annotated[Path, AfterValidator(get_fpath_suffix_validator(".jsonl"))]
