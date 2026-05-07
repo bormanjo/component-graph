@@ -6,7 +6,12 @@ import pytest
 
 from compgraph import Graph
 from compgraph.events import AbstractEvent, event_from_json
-from compgraph.event.archiver import InMemoryEventArchiver, JsonlFileEventArchiver
+from compgraph.event.archiver import (
+    InMemoryEventArchiver,
+    JsonlFileEventArchiver,
+    SQLiteEventArchiver,
+)
+from compgraph.utils import get_type_location
 
 
 class DummyEvent(AbstractEvent):
@@ -72,3 +77,46 @@ async def test_jsonl_file_event_archiver(
         event_from_json(line) for line in archive_file.read_text().splitlines()
     ]
     assert archived_events == events
+
+
+@pytest.mark.asyncio
+async def test_sqlite_event_archiver(
+    log_config: dict[str, Any],
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "archive.db"
+
+    config = log_config | {
+        "event.sender": {"class": "compgraph.event.sender.EventSenderFactory"},
+        "event.archiver": {
+            "class": "compgraph.event.archiver.SQLiteEventArchiver",
+            "events": ["tests.compgraph.event.test_archiver.DummyEvent"],
+            "db_path": db_path,
+            "interval": 0.01,
+        },
+    }
+
+    graph = await Graph.from_config(config)
+
+    archiver = graph.event.archiver
+    assert isinstance(archiver, SQLiteEventArchiver)
+
+    sender = await graph.event.sender(DummyEvent)
+    events = [DummyEvent(item=i) for i in range(10)]
+
+    async with asyncio.TaskGroup() as tg:
+        run_task = tg.create_task(graph.run())
+        _ = [tg.create_task(sender.send(event)) for event in events]
+        await asyncio.sleep(0.05)
+        run_task.cancel()
+
+    cursor = archiver._conn.execute(
+        "SELECT event_type, as_of, data FROM events ORDER BY id"
+    )
+    rows = cursor.fetchall()
+
+    assert len(rows) == len(events)
+    for (event_type, as_of, data), event in zip(rows, events):
+        assert event_type == get_type_location(event)
+        assert as_of == event.as_of.isoformat()
+        assert event_from_json(data) == event

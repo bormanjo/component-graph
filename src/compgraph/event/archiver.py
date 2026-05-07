@@ -114,7 +114,7 @@ class SQLiteEventArchiver(AbstractEventArchiver):
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_type TEXT NOT NULL,
                 as_of      DATETIME NOT NULL,
-                data       BLOB NOT NULL
+                data       TEXT NOT NULL
             )
             """
         )
@@ -137,7 +137,7 @@ class SQLiteEventArchiver(AbstractEventArchiver):
                 ]
                 self.log.info("Archiving %d event(s)", len(self._buffer))
                 self._conn.executemany(
-                    "INSERT INTO events (event_type, as_of, data) VALUES (?, ?, jsonb(?))",
+                    "INSERT INTO events (event_type, as_of, data) VALUES (?, ?, ?)",
                     rows,
                 )
                 self._conn.commit()

@@ -1,5 +1,7 @@
 import asyncio
 from abc import abstractmethod
+import sqlite3
+from pathlib import Path
 
 from pydantic import AwareDatetime, PrivateAttr
 
@@ -78,3 +80,20 @@ class JsonlFileEventReplayer(AbstractEventReplayer):
         with self.fpath.open("r") as fp:
             events = [event_from_json(line) for line in fp.readlines() if line.strip()]
         return events
+
+
+class SQLiteEventReplayer(AbstractEventReplayer):
+    """
+    This event replayer loads events from a SQLite database written by
+    `event.archiver.SQLiteEventArchiver`.
+    """
+
+    db_path: Path
+
+    async def _load_events(self) -> list[AbstractEvent]:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            cursor = conn.execute("SELECT json(data) FROM events ORDER BY as_of")
+            return [event_from_json(row[0]) for row in cursor.fetchall()]
+        finally:
+            conn.close()
