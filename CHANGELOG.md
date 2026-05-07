@@ -13,6 +13,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 
+## [0.4.0]
+
+### Added
+
+- Refactors `core.py` into `modulon/core/` submodule
+- Refactors `event.py` into `modulon/event/` subgraph
+  - Adds:
+    - `event.sender` (previously `event_sender`)
+    - `event.recorder`
+    - `event.archiver`
+- Improves config validation
+  - Namespaces must be strings and pass a regex check
+  - Uses the standard libary's `graphlib` to perform a topological sort
+    over node namespaces and their dependencies to construct a DAG
+    - replaces `networkx`
+
+### Removed
+
+- Removed `calendar` factory (to be reimplemented from stdlib tooling)
+- Removed dependencies:
+  - `networkx`
+  - `pandas`
+  - `pandas-market-calendar`
+
+### Updated
+
+- Renamed from `compgraph` to `modulon`
+
 ## [0.3.0]
 
 - Prepare for public release

@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from compgraph.utils import import_object
+from modulon.utils import import_object
 
 
 def test_import_object() -> None:
