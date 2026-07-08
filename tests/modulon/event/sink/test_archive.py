@@ -6,7 +6,7 @@ import pytest
 
 from modulon import Graph
 from modulon.events import AbstractEvent, event_from_json
-from modulon.event.archiver import (
+from modulon.event.sink.archive import (
     InMemoryEventArchiver,
     JsonlFileEventArchiver,
     SQLiteEventArchiver,
@@ -22,15 +22,15 @@ class DummyEvent(AbstractEvent):
 async def test_in_memory_event_archiver(log_config: dict[str, Any]) -> None:
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.archiver": {
-            "class": "modulon.event.archiver.InMemoryEventArchiver",
-            "events": ["tests.modulon.event.test_archiver.DummyEvent"],
+        "event.sink.archive": {
+            "class": "modulon.event.sink.archive.InMemoryEventArchiver",
+            "events": ["tests.modulon.event.sink.test_archive.DummyEvent"],
         },
     }
 
     graph = await Graph.from_config(config)
 
-    archiver = graph.event.archiver
+    archiver = graph.event.sink.archive
     assert isinstance(archiver, InMemoryEventArchiver)
 
     sender = await graph.event.sender(DummyEvent)
@@ -51,9 +51,9 @@ async def test_jsonl_file_event_archiver(
 
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.archiver": {
-            "class": "modulon.event.archiver.JsonlFileEventArchiver",
-            "events": ["tests.modulon.event.test_archiver.DummyEvent"],
+        "event.sink.archive": {
+            "class": "modulon.event.sink.archive.JsonlFileEventArchiver",
+            "events": ["tests.modulon.event.sink.test_archive.DummyEvent"],
             "fpath": archive_file,
             "interval": 0.01,
         },
@@ -61,7 +61,7 @@ async def test_jsonl_file_event_archiver(
 
     graph = await Graph.from_config(config)
 
-    archiver = graph.event.archiver
+    archiver = graph.event.sink.archive
     assert isinstance(archiver, JsonlFileEventArchiver)
 
     sender = await graph.event.sender(DummyEvent)
@@ -88,9 +88,9 @@ async def test_sqlite_event_archiver(
 
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.archiver": {
-            "class": "modulon.event.archiver.SQLiteEventArchiver",
-            "events": ["tests.modulon.event.test_archiver.DummyEvent"],
+        "event.sink.archive": {
+            "class": "modulon.event.sink.archive.SQLiteEventArchiver",
+            "events": ["tests.modulon.event.sink.test_archive.DummyEvent"],
             "db_path": db_path,
             "interval": 0.01,
         },
@@ -98,7 +98,7 @@ async def test_sqlite_event_archiver(
 
     graph = await Graph.from_config(config)
 
-    archiver = graph.event.archiver
+    archiver = graph.event.sink.archive
     assert isinstance(archiver, SQLiteEventArchiver)
 
     sender = await graph.event.sender(DummyEvent)

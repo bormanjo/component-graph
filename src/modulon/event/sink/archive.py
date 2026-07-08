@@ -11,9 +11,9 @@ from modulon.utils import JsonlFilePath, get_type_location
 
 
 @requires("event.sender")
-class AbstractEventArchiver(AbstractFactory, node_namespace="event.archiver"):
+class AbstractEventArchiveFactory(AbstractFactory, node_namespace="event.sink.archive"):
     """
-    An `event.archiver` records the emitted events of the registered types
+    An `event.sink.archiver` records the emitted events of the registered types
     by registering a callback at setup.
 
     Subclasses are responsible for implementing the private `._archive()` method.
@@ -34,7 +34,7 @@ class AbstractEventArchiver(AbstractFactory, node_namespace="event.archiver"):
     async def _archive(self, event: AbstractEvent) -> None: ...
 
 
-class InMemoryEventArchiver(AbstractEventArchiver):
+class InMemoryEventArchiver(AbstractEventArchiveFactory):
     """
     This archiver utilizes an `EventRecorder` per type of event to collect
     emitted events.
@@ -53,7 +53,7 @@ class InMemoryEventArchiver(AbstractEventArchiver):
         await recorder(event=event)
 
 
-class JsonlFileEventArchiver(AbstractEventArchiver):
+class JsonlFileEventArchiver(AbstractEventArchiveFactory):
     """
     This archiver writes events in a JSON lines format (.jsonl) such that
     each line in the file corresponds to one event.
@@ -90,7 +90,7 @@ class JsonlFileEventArchiver(AbstractEventArchiver):
         self._buffer.append(event)
 
 
-class SQLiteEventArchiver(AbstractEventArchiver):
+class SQLiteEventArchiver(AbstractEventArchiveFactory):
     """
     This archiver writes events to a SQLite database, buffering events
     and flushing on a fixed interval.

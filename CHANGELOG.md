@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 
+## [0.5.0]
+
+### Updated
+
+- Renames and moves:
+  - `event.archiver` to `event.sink.archive`
+  - `event.replayer` to `event.source.replay`
+
 ## [0.4.0]
 
 ### Added

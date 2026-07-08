@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from modulon import Graph
-from modulon.event.replayer import JsonlFileEventReplayer
+from modulon.event.source.replay import JsonlFileEventReplayer
 from modulon.event.sender import EventRecorder
 from modulon.events import AbstractEvent, event_from_json
 
@@ -23,8 +23,8 @@ async def test_config_event_replayer(log_config: dict[str, Any]) -> None:
 
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.replayer": {
-            "class": "modulon.event.replayer.ConfigEventReplayer",
+        "event.source.replay": {
+            "class": "modulon.event.source.replay.ConfigEventReplayer",
             "events": expected_events,
         },
     }
@@ -48,16 +48,16 @@ async def test_jsonl_file_event_replayer(
 ) -> None:
     jsonl_content = dedent(
         """
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557774-04:00", "item": 0}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557792-04:00", "item": 1}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557799-04:00", "item": 2}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557805-04:00", "item": 3}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557811-04:00", "item": 4}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557816-04:00", "item": 5}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557822-04:00", "item": 6}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557827-04:00", "item": 7}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557833-04:00", "item": 8}
-    {"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557838-04:00", "item": 9}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557774-04:00", "item": 0}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557792-04:00", "item": 1}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557799-04:00", "item": 2}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557805-04:00", "item": 3}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557811-04:00", "item": 4}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557816-04:00", "item": 5}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557822-04:00", "item": 6}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557827-04:00", "item": 7}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557833-04:00", "item": 8}
+    {"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557838-04:00", "item": 9}
     """.strip(" \t\n")
     )
 
@@ -66,8 +66,8 @@ async def test_jsonl_file_event_replayer(
 
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.replayer": {
-            "class": "modulon.event.replayer.JsonlFileEventReplayer",
+        "event.source.replay": {
+            "class": "modulon.event.source.replay.JsonlFileEventReplayer",
             "fpath": archive_file,
         },
     }
@@ -92,16 +92,16 @@ async def test_sqlite_event_replayer(
     tmp_path: Path,
 ) -> None:
     event_jsons = [
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557774-04:00", "item": 0}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557792-04:00", "item": 1}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557799-04:00", "item": 2}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557805-04:00", "item": 3}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557811-04:00", "item": 4}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557816-04:00", "item": 5}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557822-04:00", "item": 6}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557827-04:00", "item": 7}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557833-04:00", "item": 8}',
-        '{"_event_type": "tests.modulon.event.test_replayer.DummyEvent", "as_of": "2026-05-06T19:19:29.557838-04:00", "item": 9}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557774-04:00", "item": 0}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557792-04:00", "item": 1}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557799-04:00", "item": 2}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557805-04:00", "item": 3}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557811-04:00", "item": 4}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557816-04:00", "item": 5}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557822-04:00", "item": 6}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557827-04:00", "item": 7}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557833-04:00", "item": 8}',
+        '{"_event_type": "tests.modulon.event.source.test_replay.DummyEvent", "as_of": "2026-05-06T19:19:29.557838-04:00", "item": 9}',
     ]
 
     db_path = tmp_path / "archive.db"
@@ -120,7 +120,7 @@ async def test_sqlite_event_replayer(
         "INSERT INTO events (event_type, as_of, data) VALUES (?, ?, ?)",
         [
             (
-                "tests.modulon.event.test_replayer.DummyEvent",
+                "tests.modulon.event.source.test_replay.DummyEvent",
                 event_from_json(j).as_of.isoformat(),
                 j,
             )
@@ -132,8 +132,8 @@ async def test_sqlite_event_replayer(
 
     config = log_config | {
         "event.sender": {"class": "modulon.event.sender.EventSenderFactory"},
-        "event.replayer": {
-            "class": "modulon.event.replayer.SQLiteEventReplayer",
+        "event.source.replay": {
+            "class": "modulon.event.source.replay.SQLiteEventReplayer",
             "db_path": db_path,
         },
     }

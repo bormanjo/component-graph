@@ -9,7 +9,10 @@ from modulon.core.dependency import (
 )
 from modulon.core.error import DependencyRegistrationError
 from modulon.core.factory import AbstractFactory
-from modulon.event.archiver import AbstractEventArchiver, JsonlFileEventArchiver
+from modulon.event.sink.archive import (
+    AbstractEventArchiveFactory,
+    JsonlFileEventArchiver,
+)
 
 
 class ResolvableXYZDependency:
@@ -127,7 +130,7 @@ def test_different_instance_dependencies() -> None:
     argnames=["obj", "expected"],
     argvalues=[
         (AbstractFactory, {"log"}),
-        (AbstractEventArchiver, {"event.sender", "log"}),
+        (AbstractEventArchiveFactory, {"event.sender", "log"}),
         (JsonlFileEventArchiver, {"event.sender", "log"}),
     ],
 )
