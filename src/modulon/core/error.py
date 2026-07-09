@@ -27,3 +27,7 @@ class DependencyRegistrationError(GraphException):
 
 class MissingDependenciesError(GraphException):
     """The expected dependencies do not exist in the graph"""
+
+
+class SystemChecksFailedError(GraphException):
+    """Not all of the configured system checks succeeded"""

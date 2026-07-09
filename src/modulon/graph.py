@@ -7,11 +7,13 @@ if TYPE_CHECKING:
     from modulon.date import AbstractDateFactory
     from modulon.event import EventSubGraph
     from modulon.log import AbstractLogFactory
+    from modulon.system_check import SystemCheckFactory
 
     class Graph(graph.Graph):
         # Factories
         date: AbstractDateFactory
         log: AbstractLogFactory
+        system_check: SystemCheckFactory
 
         # SubGraphs
         event: EventSubGraph
