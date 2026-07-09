@@ -140,7 +140,7 @@ class SystemCheckFactory(
             component = await self._create_component(klass, name=name, **spec)
             self._components[name] = component
 
-        def get_callback(name: str) -> Callable[[SystemCheckResult], None]:
+        def get_callback(name: str) -> Callable[[asyncio.Task[SystemCheckResult]], Any]:
             def callback(task: asyncio.Task[SystemCheckResult]) -> None:
                 self._results[name] = result = task.result()
                 self.log.info(result.render())
