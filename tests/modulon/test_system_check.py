@@ -95,7 +95,11 @@ async def test_check_config_fields_are_validated(log_config: dict[str, Any]) -> 
         "system_check": {
             "class": "modulon.system_check.SystemCheckFactory",
             "config": {
-                "above": {"class": f"{PREFIX}.ThresholdCheck", "value": 10, "minimum": 5},
+                "above": {
+                    "class": f"{PREFIX}.ThresholdCheck",
+                    "value": 10,
+                    "minimum": 5,
+                },
             },
         },
     }
@@ -110,7 +114,11 @@ async def test_failing_threshold_aborts_graph_build(log_config: dict[str, Any]) 
         "system_check": {
             "class": "modulon.system_check.SystemCheckFactory",
             "config": {
-                "below": {"class": f"{PREFIX}.ThresholdCheck", "value": 1, "minimum": 5},
+                "below": {
+                    "class": f"{PREFIX}.ThresholdCheck",
+                    "value": 1,
+                    "minimum": 5,
+                },
             },
         },
     }
