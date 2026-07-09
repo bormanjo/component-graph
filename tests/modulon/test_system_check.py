@@ -5,7 +5,11 @@ from pydantic import ValidationError
 
 from modulon import Graph
 from modulon.core.error import SystemChecksFailedError
-from modulon.system_check import AbstractSystemCheckComponent, SystemCheckResult
+from modulon.system_check import (
+    AbstractSystemCheckComponent,
+    PackageDependencyCheck,
+    SystemCheckResult,
+)
 
 # Dotted-path prefix used to reference the check classes below from graph config.
 # `__name__` matches however pytest imported this module, so the re-import performed
@@ -138,3 +142,94 @@ async def test_non_check_class_raises_type_error(log_config: dict[str, Any]) -> 
         await Graph.from_config(config)
 
     assert excinfo.value.subgroup(TypeError) is not None
+
+
+# A package that is guaranteed absent from any environment running these tests.
+MISSING_PACKAGE = "modulon-nonexistent-dependency-xyz"
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_all_satisfied() -> None:
+    check = PackageDependencyCheck(
+        name="deps", requirements=["pydantic>=2.9", "packaging"]
+    )
+    result = await check.evaluate()
+
+    assert result.passing is True
+    assert result.msg == "2 dependency requirement(s) satisfied"
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_missing_package() -> None:
+    check = PackageDependencyCheck(name="deps", requirements=[MISSING_PACKAGE])
+    result = await check.evaluate()
+
+    assert result.passing is False
+    assert f"{MISSING_PACKAGE} is not installed" in result.msg
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_version_mismatch() -> None:
+    check = PackageDependencyCheck(name="deps", requirements=["pydantic<2"])
+    result = await check.evaluate()
+
+    assert result.passing is False
+    assert "does not satisfy" in result.msg
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_inapplicable_marker_is_skipped() -> None:
+    # The marker is false under any Python 3 interpreter, so the (missing) package
+    # requirement is skipped rather than failing the check.
+    check = PackageDependencyCheck(
+        name="deps", requirements=[f"{MISSING_PACKAGE}; python_version < '3.0'"]
+    )
+    result = await check.evaluate()
+
+    assert result.passing is True
+
+
+def test_package_dependency_check_rejects_invalid_requirement() -> None:
+    with pytest.raises(ValidationError):
+        PackageDependencyCheck(name="deps", requirements=["=="])
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_via_graph_passes(
+    log_config: dict[str, Any],
+) -> None:
+    config = log_config | {
+        "system_check": {
+            "class": "modulon.system_check.SystemCheckFactory",
+            "config": {
+                "deps": {
+                    "class": "modulon.system_check.PackageDependencyCheck",
+                    "requirements": ["pydantic>=2.9"],
+                },
+            },
+        },
+    }
+    graph = await Graph.from_config(config)
+
+    assert graph.system_check is not None
+
+
+@pytest.mark.asyncio
+async def test_package_dependency_check_via_graph_aborts_on_missing(
+    log_config: dict[str, Any],
+) -> None:
+    config = log_config | {
+        "system_check": {
+            "class": "modulon.system_check.SystemCheckFactory",
+            "config": {
+                "deps": {
+                    "class": "modulon.system_check.PackageDependencyCheck",
+                    "requirements": [MISSING_PACKAGE],
+                },
+            },
+        },
+    }
+    with pytest.raises(BaseExceptionGroup) as excinfo:
+        await Graph.from_config(config)
+
+    assert excinfo.value.subgroup(SystemChecksFailedError) is not None

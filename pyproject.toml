@@ -30,6 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "packaging>=21.3",
     "pydantic>=2.9",
 ]
 

@@ -1,9 +1,11 @@
 import asyncio
 from abc import abstractmethod
 from collections.abc import Callable
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
-from pydantic import AwareDatetime, Field
+from packaging.requirements import InvalidRequirement, Requirement
+from pydantic import AwareDatetime, Field, field_validator
 
 from modulon.core.error import SystemChecksFailedError
 from modulon.graph import AbstractComponent, AbstractFactory
@@ -46,6 +48,58 @@ class AbstractSystemCheckComponent(AbstractComponent, skip_setup=True, skip_run=
 
     @abstractmethod
     async def evaluate(self) -> SystemCheckResult: ...
+
+
+class PackageDependencyCheck(AbstractSystemCheckComponent):
+    """
+    A system check that validates config-declared Python package dependencies against
+    the packages installed in the current environment.
+
+    `requirements` is a list of PEP 508 requirement strings (e.g. ``"pydantic>=2.9"``,
+    ``"pandas>=2.0,<3"``, ``"requests"``). Each is checked against the installed
+    distribution metadata: the check fails if a required package is missing or its
+    installed version does not satisfy the requirement's version specifier.
+    Requirements whose environment markers do not apply to the current environment
+    (e.g. a different ``python_version``) are skipped.
+    """
+
+    requirements: list[str]
+
+    @field_validator("requirements")
+    @classmethod
+    def _require_valid_pep508(cls, value: list[str]) -> list[str]:
+        for requirement in value:
+            try:
+                Requirement(requirement)
+            except InvalidRequirement as err:
+                raise ValueError(f"invalid requirement '{requirement}': {err}") from err
+        return value
+
+    async def evaluate(self) -> SystemCheckResult:
+        unmet: list[str] = []
+        for requirement in map(Requirement, self.requirements):
+            if requirement.marker and not requirement.marker.evaluate():
+                continue  # requirement does not apply to this environment
+
+            try:
+                installed = version(requirement.name)
+            except PackageNotFoundError:
+                unmet.append(f"{requirement.name} is not installed")
+                continue
+
+            if not requirement.specifier.contains(installed, prereleases=True):
+                unmet.append(
+                    f"{requirement.name} {installed} does not satisfy "
+                    f"'{requirement.specifier}'"
+                )
+
+        passing = not unmet
+        msg = (
+            f"{len(self.requirements)} dependency requirement(s) satisfied"
+            if passing
+            else "; ".join(unmet)
+        )
+        return SystemCheckResult(name=self.name, passing=passing, msg=msg)
 
 
 class SystemCheckFactory(
